@@ -16,6 +16,9 @@ const Header = () => {
         <NavLink to="/contact" className="option">
           CONTACT
         </NavLink>
+        <NavLink to="/signin" className="option">
+          SIGNIN
+        </NavLink>
       </div>
     </div>
   );

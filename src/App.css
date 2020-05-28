@@ -7,3 +7,9 @@ a {
   text-decoration: none;
   color: black;
 }
+a:focus {
+  outline: none;
+}
+a::-moz-focus-inner {
+  border: 0;
+}
