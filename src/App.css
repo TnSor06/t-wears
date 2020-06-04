@@ -13,3 +13,7 @@ a:focus {
 a::-moz-focus-inner {
   border: 0;
 }
+
+* {
+  box-sizing: border-box;
+}
