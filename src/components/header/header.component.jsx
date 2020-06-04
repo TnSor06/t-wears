@@ -4,6 +4,9 @@ import "./header.styles.scss";
 import { ReactComponent as Logo } from "../../assets/t-wears-logo.svg";
 import { auth } from "../../firebase/firebase.utils";
 
+// HOC for redux to give access to redux
+import { connect } from "react-redux";
+
 const Header = ({ currentUser }) => {
   return (
     <div className="header">
@@ -36,4 +39,11 @@ const Header = ({ currentUser }) => {
   );
 };
 
-export default Header;
+const mapStateToProps = (state) => {
+  // state is rootReducer
+  return {
+    currentUser: state.user.currentUser,
+  };
+};
+
+export default connect(mapStateToProps, null)(Header);
