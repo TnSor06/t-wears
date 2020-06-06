@@ -1,0 +1,375 @@
+Data Flow: 
+    Action -> State -> Views
+
+Classs Component Setup:
+
+    class App extends React.Component {
+    constructor() {
+        super();
+        this.state = {
+        number: 0,
+        };
+    }
+    render() {
+        return (
+        <div className="App">
+            <header className="App-header">
+            <img src={logo} className="App-logo" alt="logo" />
+            <p>{this.state.number}</p>
+            <button
+                onClick={() => {
+                    this.setState({
+                        number: this.state.number + 1,
+                    });
+                }}
+            >
+                Click Here
+            </button>
+            </header>
+        </div>
+        );
+    }
+    }
+
+Why Use A Key:
+
+    {this.state.monsters.map((monster) => {
+      // React is smart enough to understand which element is to be changed
+      // With the help of key only a specific element is updated
+      // Improving performance rather than re-rendering all element
+      return <p key={monster.id}>{monster.name}</p>;
+    })}
+
+Performing Request in React Component
+
+    componentDidMount() {
+        fetch("https://jsonplaceholder.typicode.com/users")
+        .then((response) => {
+            return response.json();
+        })
+        .then((users) => {
+            this.setState({
+                monsters: users,
+            });
+        });
+    }
+
+Naming components: (Always naming of file should be in small)
+    componentname(Folder of each Component):
+        1. componentname.component.jsx -> JS File for React Component
+        2. componentname.styles.css -> CSS File for that Component
+
+Working with Functional Component
+
+    import React from "react";
+
+    // Importing css for this component
+    import "./card-list.styles.css";
+
+    function CardList(props) {
+        // props.children is properties passed between the angle brackets
+        return (
+            <div className="card-list">
+            {props.monsters.map((monster) => {
+                return <p key={monster.id}>{monster.name}</p>;
+            })}
+            </div>
+        );
+    }
+
+    export default CardList;
+
+setState:
+    this.setState(
+        {
+        searchField: e.target.value,
+        },
+        () => {
+        // this is a callback method
+        console.log(this.state);
+        }
+    );
+    Note:
+        1. this.setState is an async event so values are not updated immediately.
+        2. So to get updated values and perform function after updation you can use callback method as second argument to setState.
+
+classMethod vs arrow function
+    a. classMethod: this method give an error on calling this.setState because it is not binded to the component and is classMethod not instance method
+    so to bind it in instance use this code in constructor: this.handleChange = this.handleChange.bind(this); or when calling the method bind : {this.handleChange.bind(this)};
+        handleChange (e){
+            this.setState(
+            {
+                searchField: e.target.value,
+            },
+            () => {
+                console.log(this.state);
+            }
+            );
+        }; 
+    b. Arrow function automatically binds this instance with the class when it is defined
+        handleChange = (e) => {
+            this.setState(
+            {
+                searchField: e.target.value,
+            },
+            () => {
+                console.log(this.state);
+            }
+            );
+        }; 
+
+Deployed to: long-calculator.surge.sh
+
+Practices In React
+    1. Props in Constructor
+        constructor(props) {
+            super(props);
+            this.state = {
+            counter = 1 + this.props.increment
+            };
+            // To use props in constructor pass it as parameter
+            this.props;
+        }
+    2. Proper way to use setState
+        this.setState(
+            (prevState, prevProps) => {
+                // Since setState is async it helps getting latest data from ultiple setState changes
+                return {
+                count: prevState.count + prevProps.increment,
+                };
+            },
+            () => {
+                console.log(this.state);
+            }
+        );
+    3. Load base component with constructor and render and only then call componentDidMount for api fetch
+    4. What triggers update
+        this.setState, newProps or forceUpdate
+    5. Only try to use Did methods rather than wil methods(except componentWillUnmount) since Will is called before render and JS is async
+
+Structuring the folders in src:
+    1. components: Reusable elements
+    2. pages: Displaying elements
+    3. assets
+    4. firebase: All config and function related to firebase
+
+Routing in React:
+    1. react-router-dom library is used for routing in React. It uses history api provided by the browser.
+    2. In index.js -> import { BrowserRouter } from "react-router-dom"; then wrap BrowserRouter around App component.
+    BrowserRouter handles routing functionality
+    3. Three things of react-router-dom
+        import { Route, Link, NavLink, Redirect, Switch } from "react-router-dom";
+    4. Route component in react-router-dom
+        <Route exact path="/" component={HomePage}></Route>
+        Props: match, location, history
+    5. Switch components wraps all Routes to find a match of path to give only one route even if paths match if exact is not used.
+    6. Passing router props from Route component to children is done but to pass it further down get complicated 
+        such that we have to pass to further children either using props which will create an issue wherein props are passed to places not required.
+        Second method is withRouter HOC from react-router-dom.
+        Higher Order Component is functional component that takes a component and modifies it and returns modified component.
+    7. Practices:
+
+        onClick={() => {
+            history.push(`${match.url}${linkUrl}`);
+        }}
+
+        {this.state.sections.map(({ id, ...otherProps }) => {
+            // Above args spreads the data of eachSection and takes only id whereas rest data is named as otherProps
+            // This otherProps is spread as props in MenuItem as shown below
+            return <MenuItem key={id} id={id} {...otherProps}></MenuItem>;
+        })}
+
+        Importing SVGs
+        import { ReactComponent as Logo }
+        This is a a new special syntax when importing SVG in React. 
+        The ReactComponent import name is special and tells Create React App that you want a React component
+        that renders an SVG, rather than its filename.
+
+        Form in react component:
+            https://medium.com/@agoiabeladeyemi/the-complete-guide-to-forms-in-react-d2ba93f32825
+
+Redux as state manager:
+    - Library: redux, redux-logger(middleware for logging), react-redux
+    - React state => Redux
+    - Large state is simply managed and shared in redux.
+    - States from component are reduced to props. And one object controls all state.
+    - State managment using 3 principles:
+        1. Single source of truth
+        2. State is read only -> Makes immutability in state
+        3. State change is pure function
+    
+    - Redux Flow (One Way):
+        Action(Dispatcher) => Root Reducer => Store => DOM Changes
+
+        Root Reducer => State as props => Components => Dispatch Actions as Props => Action => Slice of Reducer Updated => Root Reducer updated
+
+        Action underhood:
+            Component => TriggerAction => Pass type and payload => Update slice Reducer state => Pass updated reducer state as props
+            Reducer takes prev_state, action
+
+    Note: Redux stores only important state in Redux Store while UI specific state like form inputs are stored in this.state
+
+    Structure for redux:
+        src => redux(Folder)
+            - root-reducer.js
+            - store.js
+            - Component folder(user) 
+                1. user.types.js (Contains constant & string to avoid typos)
+                2. user-reducer.jsx
+                3. user.actions.js (Contains function that returns object)
+                4. user.utils.js (Contains any function to process redux data)
+
+    Code in Setting Redux:
+        user.types.js
+            export const userActionTypes = {
+                SET_CURRENT_USER: "SET_CURRENT_USER",
+            };
+        user-reducer.jsx
+            import { userActionTypes } from "./user.types";
+            // Init value when component is mounted for first time
+            const INITIAL_STATE = {
+                currentUser: null,
+            };
+
+            const userReducer = (state = INITIAL_STATE, action) => {
+                // State which is current is passed by redux store
+                switch (action.type) {
+                    case userActionTypes.SET_CURRENT_USER:
+                    return {
+                        ...state,
+                        currentUser: action.payload,
+                    };
+                    break;
+                    default:
+                    return state;
+                    break;
+                }
+            };
+
+            export default userReducer;
+
+        user.action.js
+            import { userActionTypes } from "./user.types";
+            export const setCurrentUser = (user) => {
+                return {
+                    type: userActionTypes.SET_CURRENT_USER,
+                    payload: user,
+                };
+            };
+
+        
+        root-reducer.js
+            import { combineReducers } from "redux";
+
+            import userReducer from "./user/user-reducer";
+
+            export default combineReducers({
+                user: userReducer,
+            });
+
+        store.js
+            import { createStore, applyMiddleware } from "redux";
+            // Logging process of redux
+            import logger from "redux-logger";
+
+            import rootReducer from "./root-reducer";
+
+            const middlewares = [logger]; // Setting middleware
+            const store = createStore(rootReducer, applyMiddleware(...middlewares));
+
+            expoort default store;
+
+        index.js
+            // Redux code
+            import { Provider } from "react-redux";
+            // This inits store and is parent of app to access eveeryhting in redux
+            import store from "./redux/store";
+
+            ReactDOM.render(
+                <React.StrictMode>
+                    <Provider store={store}>
+                        <BrowserRouter>
+                            <App />
+                        </BrowserRouter>
+                    </Provider>
+                </React.StrictMode>,
+                document.getElementById("root")
+            );
+
+    Code in bringing redux to component:
+        - connect and mapStateToProps
+            // HOC for redux to give access to redux
+            import { connect } from "react-redux";
+
+            ...Your Code Here
+            const mapStateToProps = (state) => {
+                // state is rootReducer
+                currentUser: state.user.currentUser;
+            };
+
+            export default connect(mapStateToProps, null)(Header);
+
+        - mapDispatchToProps
+
+            // HOC for redux to give access to redux
+            import { connect } from "react-redux";
+            // Import action to be used
+            import { setCurrentUser } from "./redux/user/user.actions";
+
+            // Calling props setCurrentUser
+            const { setCurrentUser } = this.props;
+            setCurrentUser({
+                id: snapShot.id,
+                ...snapShot.data(),
+            });
+
+            const mapDispatchToProps = (dispatch) => {
+                return {
+                    setCurrentUser: (user) => {
+                    dispatch(setCurrentUser(user));
+                    },
+                };
+            };
+
+            export default connect(null, mapDispatchToProps)(App);
+
+Practices in React:
+    1. Simple route guarding: Rather than setting code in component we can do it in parent or just route only
+        <Route
+            exact
+            path="/signin"
+            render={() => {
+              return this.props.currentUser ? (
+                <Redirect to="/" />
+              ) : (
+                <SignInAndSignUp />
+              );
+            }}
+        ></Route>
+    2. Fetch something specific within destructure
+        const mapStateToProps = ({ user: { currentUser }, cart: { hidden } }) => {
+            we destructure to get user within args but it can be further destructure to get only currentUser
+            return {
+                currentUser,
+                hidden,
+            };
+        };
+
+        // Array destructure
+        cartItems: [...state.cartItems, action.payload],
+    
+    3. Just Some Code
+        export const addItemToCart = (cartItems, cartItemToAdd) => {
+            const existingCartItem = cartItems.find((cartItem) => {
+                return cartItem.id === cartItemToAdd.id;
+            });
+            if (existingCartItem) {
+                return cartItems.map((cartItem) => {
+                return cartItem.id === cartItemToAdd.id
+                    ? { ...cartItem, quantity: cartItem.quantity + 1 }
+                    : cartItem;
+                });
+            }
+            return [...cartItems, { ...cartItemToAdd, quantity: 1 }];
+        };
+
