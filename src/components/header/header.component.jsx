@@ -6,8 +6,10 @@ import { auth } from "../../firebase/firebase.utils";
 
 // HOC for redux to give access to redux
 import { connect } from "react-redux";
+import CartIcon from "../cart-icon/cart-icon.component";
+import CartDropDown from "../cart-dropdown/cart-dropdown.component";
 
-const Header = ({ currentUser }) => {
+const Header = ({ currentUser, hidden }) => {
   return (
     <div className="header">
       <Link to="/" className="logo-container">
@@ -34,15 +36,17 @@ const Header = ({ currentUser }) => {
             SIGNIN
           </NavLink>
         )}
+        <CartIcon></CartIcon>
       </div>
+      {hidden ? null : <CartDropDown></CartDropDown>}
     </div>
   );
 };
 
-const mapStateToProps = (state) => {
-  // state is rootReducer
+const mapStateToProps = ({ user: { currentUser }, cart: { hidden } }) => {
   return {
-    currentUser: state.user.currentUser,
+    currentUser,
+    hidden,
   };
 };
 
