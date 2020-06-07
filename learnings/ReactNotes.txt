@@ -218,6 +218,7 @@ Redux as state manager:
                 2. user-reducer.jsx
                 3. user.actions.js (Contains function that returns object)
                 4. user.utils.js (Contains any function to process redux data)
+                5. user.selector.js (Contains a resuable process for caching like memoization to improve performance)
 
     Code in Setting Redux:
         user.types.js
@@ -373,3 +374,76 @@ Practices in React:
             return [...cartItems, { ...cartItemToAdd, quantity: 1 }];
         };
 
+    4. Selectors in Redux
+        const mapStateToProps = ({ cart: { cartItems } }) => {
+            // Selectors in redux => Getting value based of state
+            return {
+                itemCount: cartItems.reduce((accumulator, cartItem) => {
+                return accumulator + cartItem.quantity;
+                }, 0),
+            };
+        };
+
+Memoization: 
+Library: reselect
+Adv: Does not have to re redner process because no changes are happening in memozied data
+    whereas even if object remains same due to changes .object is identifed as new so it re renders 
+    cart.selector.js
+        import { createSelector } from "reselect";
+
+        // Selectors
+        // Input selector is function that gets whole state and returns a slice
+        const selectCart = (state) => {
+            return state.cart;
+        };
+
+        // Output selector is function that use input selctor to build themselves
+        export const selectCartItems = createSelector([selectCart], (cart) => {
+            // This is memoized
+            return cart.cartItems;
+        });
+
+        export const selectCartHidden = createSelector([selectCart], (cart) => {
+            return cart.hidden;
+        });
+
+        export const selectCartItemsCount = createSelector(
+            [selectCartItems],
+            (cartItems) => {
+                return cartItems.reduce((accumulator, cartItem) => {
+                return accumulator + cartItem.quantity;
+                }, 0);
+            }
+        );
+
+    using in component:
+    const mapStateToProps = (state) => {
+        // Selectors in redux => Getting value based of state
+        return {
+            itemCount: selectCartItemsCount(state),
+        };
+    };
+
+    Approach 2:
+        user.selector.js
+        import { createSelector } from "reselect";
+
+        const selectUser = (state) => state.user;
+
+        export const selectCurrentUser = createSelector([selectUser], (user) => {
+            return user.currentUser;
+        });
+    
+    using multiple selectors in mapStateToProps:
+
+        import { createStructuredSelector } from "reselect";
+        import { selectCartHidden } from "../../redux/cart/cart.selector";
+        import { selectCurrentUser } from "../../redux/user/user.selector";
+
+        // state is passed automatically
+        const mapStateToProps = createStructuredSelector({
+            currentUser: selectCurrentUser,
+            hidden: selectCartHidden,
+        });
+NOTE: every state should have a selector to improve performance
+and mapStateToProps should have createStructuredSelector
