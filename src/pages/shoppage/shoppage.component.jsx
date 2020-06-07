@@ -1,26 +1,25 @@
-import React, { Component } from "react";
-import { SHOP_DATA } from "./shop.data";
-import { CollectionPreview } from "../../components/collection-preview/collection-preview.component";
+import React from "react";
+import CollectionsOverview from "../../components/collections-overview/collections-overview.component";
+import { Route } from "react-router-dom";
+import CollectionsPage from "../collections/collections.component";
 
-class ShopPage extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      collections: SHOP_DATA,
-    };
-  }
-  render() {
-    const { collections } = this.state;
-    return (
-      <div className="shop-page">
-        {collections.map(({ id, ...otherProps }) => {
-          return (
-            <CollectionPreview key={id} {...otherProps}></CollectionPreview>
-          );
-        })}
-      </div>
-    );
-  }
-}
+// Routing for on path /shop
+// So that dynamic routing is /shop/:category
+const ShopPage = ({ match }) => {
+  // Match, location ,history is passed by route objetc in /shop
+  return (
+    <div className="shop-page">
+      <Route
+        exact
+        path={`${match.path}`}
+        component={CollectionsOverview}
+      ></Route>
+      <Route
+        path={`${match.path}/:collection`}
+        component={CollectionsPage}
+      ></Route>
+    </div>
+  );
+};
 
 export default ShopPage;

@@ -47,7 +47,7 @@ class App extends Component {
         <Header></Header>
         <Switch>
           <Route exact path="/" component={HomePage}></Route>
-          <Route exact path="/shop" component={ShopPage}></Route>
+          <Route path="/shop" component={ShopPage}></Route>
           <Route
             exact
             path="/signin"
@@ -60,6 +60,11 @@ class App extends Component {
             }}
           ></Route>
           <Route exact path="/checkout" component={CheckoutPage}></Route>
+          <Route
+            render={() => {
+              return "Error 404 : No Match Found";
+            }}
+          ></Route>
         </Switch>
       </div>
     );
