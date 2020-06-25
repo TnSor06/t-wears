@@ -542,3 +542,6 @@ Nested Routing Beyond Main Switch Component:
 
 Data Normalization is precess of stroing list in object so that retrieval of data is faster
 in object by hash or key value rather tha iterating in array
+
+Stripe Payment API:
+    

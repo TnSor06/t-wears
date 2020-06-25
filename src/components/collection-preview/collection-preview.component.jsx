@@ -1,9 +1,9 @@
 import React from "react";
 import CollectionItem from "../collection-item/collection-item.component";
-
+import { Link } from "react-router-dom";
 import "./collection-preview.styles.scss";
 
-export const CollectionPreview = ({ title, items }) => {
+export const CollectionPreview = ({ title, items, routeName, history }) => {
   return (
     <div className="collection-preview">
       <h1 className="title">{title.toUpperCase()}</h1>
@@ -14,6 +14,9 @@ export const CollectionPreview = ({ title, items }) => {
             return <CollectionItem key={item.id} item={item}></CollectionItem>;
           })}
       </div>
+      <Link to={`/shop/${routeName}`} className="more">
+        More
+      </Link>
     </div>
   );
 };
