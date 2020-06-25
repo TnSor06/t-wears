@@ -544,4 +544,178 @@ Data Normalization is precess of stroing list in object so that retrieval of dat
 in object by hash or key value rather tha iterating in array
 
 Stripe Payment API:
+    npm i react-stripe-checkout
+
+CSS in JS:
+    - We create Scss styles for each component and page
+    - Flaws in CSS:
+        Each component and class between different parts can be an issue
+        E.g. Card component at two different place might have same styling
+        Solution: BEM CSS But it adds overhead in naming convention for CSS
+    - JS can be leveraged to use CSS
+        Normal Method:
+            This can be done by adding style JS object where CSS is written in JS object in camelCase
+            const styles = {
+                color:"red"
+            }
+            <div style={styles}></div>
+            Here we cannot implement CSS selectors
+        Using styled-components: 
+        
+            npm i styled-components
+
+            import React from "react";
+            import sstyled from "styled-components";
+
+            const Text = sstyled.div`
+                color:red;
+                font-size:28px;
+                border:${({ isActive, ...otherProps }) =>
+                isActive ? "1px solid black" : "5px dotted green"};
+            `;
+
+            export const TestComponent = () => {
+                return (
+                    <div>
+                    <Text isActive={false}>
+                        <p>
+                        ClassName are uinquely given by styled components so that is doesnt
+                        match anywhere else
+                        </p>
+                    </Text>
+                    </div>
+                );
+            };
     
+    Using in our App:
+        - Naming convention
+            homepage.styles.js instead of scss
+                import styled from "styled-components";
+
+                const HomePageContainer = styled.div`
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 20px 80px;
+                `;
+
+                export { HomePageContainer };
+
+            in the component:
+                import { HomePageContainer } from "./homepage.styles.js";
+
+                export const HomePage = () => {
+                    return (
+                        <HomePageContainer>
+                          <Directory></Directory>
+                        </HomePageContainer>
+                    );
+                };
+        - More
+
+            import styled, { css } from "styled-components";
+
+            // Styling Link Component from external Lib
+            import { Link } from "react-router-dom";
+
+            export const HeaderContainer = styled.header`
+            height: 70px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            `;
+
+            // Wrapping imported components
+            export const LogoContainer = styled(Link)`
+            height: 100%;
+            width: 70px;
+            padding: 25px;
+            `;
+
+            export const OptionsContainer = styled.div`
+            width: 50%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            `;
+
+            // If same class is used by two different components
+            const OptionContainer = css`
+            padding: 10px 15px;
+            cursor: pointer;
+            `;
+
+            export const OptionLink = styled(Link)`
+            ${OptionContainer}
+            `;
+
+            export const OptionDiv = styled.div`
+            ${OptionContainer}
+            `;
+
+            Here we are creating same styles for two different elements because the elements are different
+            We can remove OptionDiv and when using OptionLink on div element we can pass "as" as a Prop and specify type of element
+                <OptionLink as="div" onClick={() => { auth.signOut(); }}>
+        
+        - Advanced styles in CSS IN JS
+            import styled, { css } from "styled-components";
+
+            const ButtonStyles = css`
+                background-color: black;
+                color: white;
+                border: none;
+                &:hover {
+                    background-color: white;
+                    color: black;
+                    border: 1px solid black;
+                }
+            `;
+
+            const InvertedButtonStyles = css`
+                background-color: #fff;
+                color: #000;
+                border: 1px solid black;
+
+                &:hover {
+                    background-color: #000;
+                    color: #fff;
+                    border: none;
+                }
+            `;
+
+            const GoogleSignInStyles = css`
+                background-color: #4285f4;
+                color: white;
+
+                &:hover {
+                    background-color: #357ae8;
+                    border: none;
+                }
+            `;
+
+            const getButtonStyles = (props) => {
+                // Props are passed from CustomButtonContainer
+                if (props.googleSignIn) {
+                    return GoogleSignInStyles;
+                }
+                return props.inverted ? InvertedButtonStyles : ButtonStyles;
+            };
+
+            export const CustomButtonContainer = styled.button`
+                min-width: 165px;
+                width: auto;
+                height: 50px;
+                letter-spacing: 0.5px;
+                line-height: 50px;
+                padding: 0 35px 0 35px;
+                font-size: 15px;
+                text-transform: uppercase;
+                font-family: "Open Sans Condensed";
+                font-weight: bolder;
+                cursor: pointer;
+                display: flex;
+                justify-content: center;
+                ${getButtonStyles}
+            `;
