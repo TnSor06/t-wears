@@ -33,6 +33,13 @@ class App extends Component {
         });
       } else {
         setCurrentUser(userAuth);
+        // collectionArray: selectShopCollectionsForPreview in Props
+        // AddCollectionAndDocuments(
+        //   "collections",
+        //   collectionArray.map(({ title, items }) => {
+        //     return { title, items };
+        //   })
+        // );
       }
     });
   }

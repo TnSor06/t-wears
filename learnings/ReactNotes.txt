@@ -719,3 +719,222 @@ CSS in JS:
                 justify-content: center;
                 ${getButtonStyles}
             `;
+        
+        - Converted Elements HomePage, Header, CustomButton
+
+Understanding Firebase Document and Collection:
+    export const AddCollectionAndDocuments = async (
+        collectionKey,
+        objectsToAdd
+    ) => {
+        // In Firebase-> Collection(user)->Document(RandomID)->Fields+AdditonalCollection
+        // collection Ref creates a new Collection in firebase
+        const collectionRef = firestore.collection(collectionKey);
+        // Batch write: Group all calls in one request such that failure is
+        // retracted back with any issue in case single request fail
+        const batch = firestore.batch();
+        objectsToAdd.forEach((obj) => {
+            const newDocRef = collectionRef.doc();
+            // newDocRef is new UID AutoGeneratted
+            batch.set(newDocRef, obj);
+        });
+        await batch.commit();
+    };
+
+Spinner HOC:
+    import React from "react";
+    import { SpinnerOverlay, SpinnerContainer } from "./with-spinner.styles";
+
+    export const WithSpinner = (WrappedComponent) => ({
+        isLoading,
+        ...otherProps
+    }) => {
+        return isLoading ? (
+            <SpinnerOverlay>
+            <SpinnerContainer></SpinnerContainer>
+            </SpinnerOverlay>
+        ) : (
+            <WrappedComponent {...otherProps}></WrappedComponent>
+        );
+    };
+ Applying SpinnerHOC
+    import React, { Component } from "react";
+    import CollectionsOverview from "../../components/collections-overview/collections-overview.component";
+    import { Route } from "react-router-dom";
+    import CollectionsPage from "../collections/collections.component";
+    import {
+    firestore,
+    convertCollectionSnapshotToMap,
+    } from "../../firebase/firebase.utils";
+    import { connect } from "react-redux";
+    import { updateCollections } from "../../redux/shop/shop.actions";
+    import { WithSpinner } from "../../components/with-spinner/with-spinner.component";
+
+    const CollectionsOverviewWithSpinner = WithSpinner(CollectionsOverview);
+    const CollectionsPageWithSpinner = WithSpinner(CollectionsPage);
+
+    class ShopPage extends Component {
+        constructor() {
+            super();
+            this.state = {
+            isLoading: true,
+            };
+        }
+        unsubscribeFromSnapshot = null;
+        componentDidMount() {
+            const { updateCollections } = this.props;
+            const collectionRef = firestore.collection("collections");
+            // On update or first time page loads
+            collectionRef.onSnapshot(async (snapshot) => {
+            const collectionsMap = convertCollectionSnapshotToMap(snapshot);
+            updateCollections(collectionsMap);
+            this.setState({
+                ...this.state,
+                isLoading: false,
+            });
+            });
+        }
+        render() {
+            const { match } = this.props;
+            const { isLoading } = this.state;
+            return (
+            <div className="shop-page">
+                <Route
+                exact
+                path={`${match.path}`}
+                // component={CollectionsOverview}
+                render={(props) => {
+                    return (
+                    <CollectionsOverviewWithSpinner
+                        isLoading={isLoading}
+                        {...props}
+                    ></CollectionsOverviewWithSpinner>
+                    );
+                }}
+                ></Route>
+                <Route
+                path={`${match.path}/:collection`}
+                // component={CollectionsPage}
+                render={(props) => {
+                    return (
+                    <CollectionsPageWithSpinner
+                        isLoading={isLoading}
+                        {...props}
+                    ></CollectionsPageWithSpinner>
+                    );
+                }}
+                ></Route>
+            </div>
+            );
+        }
+    }
+
+    const mapDispatchToProps = (dispatch) => {
+    return {
+        updateCollections: (collectionsMap) => {
+        dispatch(updateCollections(collectionsMap));
+        },
+    };
+    };
+
+    export default connect(null, mapDispatchToProps)(ShopPage);
+
+Sample HOC for fetch :
+    import React from 'react';
+
+    const withData = WrappedComponent => {
+        class WithData extends React.Component {
+            constructor(props) {
+            super(props);
+
+            this.state = {
+                data: []
+            };
+            }
+
+            componentDidMount() {
+            setTimeout(() => {
+                fetch(this.props.dataSource)
+                .then(response => response.json())
+                .then(data => this.setState({ data: data.slice(0, 3) }));
+            }, 1500);
+            }
+
+            render() {
+            const { dataSource, ...otherProps } = this.props;
+
+            return this.state.data.length < 1 ? (
+                <h1>LOADING</h1>
+            ) : (
+                <WrappedComponent data={this.state.data} {...otherProps} />
+            );
+            }
+        }
+
+        return WithData;
+    };
+
+    export default withData;
+
+Applying withData
+    import React from 'react';
+
+    import withData from '../../with-data';
+
+    const UserProfile = ({ data, name, email }) => (
+        <div className='container'>
+            <h1>{name}</h1>
+            <h2>{email}</h2>
+            Posts:
+            {data.map(post => (
+            <div className='post' key={post.id}>
+                <h1>{post.title}</h1>
+                <p> {post.body} </p>
+            </div>
+            ))}
+        </div>
+    );
+
+    export default withData(UserProfile);
+
+    In App.js
+        <UserList dataSource='https://jsonplaceholder.typicode.com/users' />
+
+Async Redux:
+    - In firebase
+        auth.onAuthStateChanged and  collectionRef.onSnapshot are observable + observer methods.
+        The observer pattern is a software design pattern in which an object, called the subject, maintains a list of its dependents,
+        called observers, and notifies them automatically of any state changes, usually by calling one of their methods. 
+        Here subject direcly interacts with observer.
+        Data is recieved in stream observer has three methods: onNext, onError, onComplete
+        In our code we use onNext to get latest updates.
+        Note: These methods return unsubscribe methods and thus should be used for unMounting Case
+        Alternate is Promise methods
+
+        // Observer Pattern
+        collectionRef.onSnapshot(async (snapshot) => {
+            // Live updates
+            const collectionsMap = convertCollectionSnapshotToMap(snapshot);
+            updateCollections(collectionsMap);
+            this.setState({
+                ...this.state,
+                isLoading: false,
+            });
+        });
+        // Promise Pattern
+        collectionRef.get().then(async (snapshot) => {
+            // No longer live updates here
+            const collectionsMap = convertCollectionSnapshotToMap(snapshot);
+            updateCollections(collectionsMap);
+            this.setState({
+                ...this.state,
+                isLoading: false,
+            });
+        });
+        // Fetch Pattern
+        fetch("https://firestore.googleapis.com/v1/projects/t-wears/databases/(default)/documents/collections")
+        .then((response) => response.json())
+        .then((collection) => {
+            // Return API Version
+            console.log(collection);
+        });

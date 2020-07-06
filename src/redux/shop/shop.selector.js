@@ -9,14 +9,16 @@ export const selectShopCollections = createSelector([selectShop], (shop) => {
 export const selectShopCollectionsForPreview = createSelector(
   [selectShopCollections],
   (collections) => {
-    return Object.keys(collections).map((collectionKey) => {
-      return collections[collectionKey];
-    });
+    return collections
+      ? Object.keys(collections).map((collectionKey) => {
+          return collections[collectionKey];
+        })
+      : [];
   }
 );
 
 export const selectShopCollection = (collectionUrlParam) => {
   return createSelector([selectShopCollections], (collections) => {
-    return collections[collectionUrlParam];
+    return collections ? collections[collectionUrlParam] : null;
   });
 };
