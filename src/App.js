@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useEffect } from "react";
 
 import { Route, Switch, Redirect } from "react-router-dom";
 
@@ -16,41 +16,38 @@ import { createStructuredSelector } from "reselect";
 import CheckoutPage from "./pages/checkout/checkout.component";
 import { checkUserSession } from "./redux/user/user.actions";
 
-class App extends Component {
-  componentDidMount() {
-    const { checkUserSession } = this.props;
+const App = (props) => {
+  const { checkUserSession } = props;
+  useEffect(() => {
     checkUserSession();
-  }
-
-  render() {
-    return (
-      <div>
-        <Header></Header>
-        <Switch>
-          <Route exact path="/" component={HomePage}></Route>
-          <Route path="/shop" component={ShopPage}></Route>
-          <Route
-            exact
-            path="/signin"
-            render={() => {
-              return this.props.currentUser ? (
-                <Redirect to="/" />
-              ) : (
-                <SignInAndSignUp />
-              );
-            }}
-          ></Route>
-          <Route exact path="/checkout" component={CheckoutPage}></Route>
-          <Route
-            render={() => {
-              return "Error 404 : No Match Found";
-            }}
-          ></Route>
-        </Switch>
-      </div>
-    );
-  }
-}
+  }, [checkUserSession]);
+  return (
+    <div>
+      <Header></Header>
+      <Switch>
+        <Route exact path="/" component={HomePage}></Route>
+        <Route path="/shop" component={ShopPage}></Route>
+        <Route
+          exact
+          path="/signin"
+          render={() => {
+            return props.currentUser ? (
+              <Redirect to="/" />
+            ) : (
+              <SignInAndSignUp />
+            );
+          }}
+        ></Route>
+        <Route exact path="/checkout" component={CheckoutPage}></Route>
+        <Route
+          render={() => {
+            return "Error 404 : No Match Found";
+          }}
+        ></Route>
+      </Switch>
+    </div>
+  );
+};
 
 const mapStateToProps = createStructuredSelector({
   currentUser: selectCurrentUser,

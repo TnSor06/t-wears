@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useState } from "react";
 
 import "./sign-in.styles.scss";
 import { FormInput } from "../form-input/form-input.component";
@@ -9,69 +9,60 @@ import {
   emailSignInStart,
 } from "../../redux/user/user.actions";
 
-class SignIn extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      email: "",
-      password: "",
-    };
-  }
+const SignIn = (props) => {
+  const [userCredentials, setCredentials] = useState({
+    email: "",
+    password: "",
+  });
+  const { googleSignInStart, emailSignInStart } = props;
 
-  handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    const { emailSignInStart } = this.props;
-    const { email, password } = this.state;
+    const { email, password } = userCredentials;
     emailSignInStart(email, password);
     // States are automatically set by redux sagas
   };
 
-  handleChange = (e) => {
+  const handleChange = (e) => {
     const { value, name } = e.target;
-    this.setState({
-      [name]: value,
-    });
+    setCredentials({ ...userCredentials, [name]: value });
   };
 
-  render() {
-    const { googleSignInStart } = this.props;
-    const { email, password } = this.state;
-    return (
-      <div className="sign-in">
-        <h2>I already have an account</h2>
-        <span>Sign In with your email and password</span>
-        <form onSubmit={this.handleSubmit}>
-          <FormInput
-            handleChange={this.handleChange}
-            label="Email"
-            type="email"
-            name="email"
-            value={email}
-            required
-          ></FormInput>
-          <FormInput
-            handleChange={this.handleChange}
-            label="Password"
-            type="password"
-            name="password"
-            value={password}
-            required
-          ></FormInput>
-          <div className="buttons">
-            <CustomButton type="submit">Sign In</CustomButton>
-            <CustomButton
-              type="button"
-              onClick={googleSignInStart}
-              isGoogleSignIn
-            >
-              Sign In With Google
-            </CustomButton>
-          </div>
-        </form>
-      </div>
-    );
-  }
-}
+  return (
+    <div className="sign-in">
+      <h2>I already have an account</h2>
+      <span>Sign In with your email and password</span>
+      <form onSubmit={handleSubmit}>
+        <FormInput
+          handleChange={handleChange}
+          label="Email"
+          type="email"
+          name="email"
+          value={userCredentials.email}
+          required
+        ></FormInput>
+        <FormInput
+          handleChange={handleChange}
+          label="Password"
+          type="password"
+          name="password"
+          value={userCredentials.password}
+          required
+        ></FormInput>
+        <div className="buttons">
+          <CustomButton type="submit">Sign In</CustomButton>
+          <CustomButton
+            type="button"
+            onClick={googleSignInStart}
+            isGoogleSignIn
+          >
+            Sign In With Google
+          </CustomButton>
+        </div>
+      </form>
+    </div>
+  );
+};
 
 const mapDispatchToProps = (dispatch) => {
   return {

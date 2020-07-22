@@ -180,3 +180,40 @@ Getting started with redux-saga:
         Cart-reducer -> cart.types.js, cart.actions.js, cart-reducer.jsx, cart.sagas.js,root-saga.js
     -Sagas Make component free of logic and only for frontend presentation. and handles all api requests
 
+React Hooks: Aim to replace class component to functional component and also provide states to those component
+    1. useState allows component to use state with parameter passed: it gives back state and setState in an array
+        const [title, setTitle] = useState("MySpace")
+               value, setterFunction=>Changes Value like in this.setState
+    2. useEffect (Alternative to lifecycle methods in functional component)
+    useEffect(()=>{
+        // Called whenever component changes
+    },[user]) // Array has properties to say when to apply on state change
+    // empty array means it fires once since we are not watching any state (componentDidMount)
+
+    Rules: Conditional Code firing must be within hooks since hooks definition should be on top of App not within any function with component
+    Components: sign-in.component.jsx, sign-up.component.jsx, App.js, shoppage.component.jsx
+
+    3. useEffect pass a function within function which is cleanup function i.e componentWillUnmount
+    useEffect(()=>{
+        return ()=>{
+            // CleanUp function
+            // For componentWillUnmount
+        }
+    }, [])
+
+    4. Custom Hooks: Same hooks for two or more components
+    Create folder called effects and add use-{common}.effect.js
+        import {useState,useEffect} from 'react'
+        function useFetch(params){ // or Arrow function
+            const [data,setData] = useState(null);
+            useEffect(()=>{
+                //Logic
+            },[conditionals])
+            return data;
+        }
+    5. useReducer hooks: Lets build actual reducer and state management
+        // Localized to component
+        // Not Async
+        Example: https://github.com/ZhangMYihua/useReducer-example
+    
+    Many hooks will be explained in ContextAPI later

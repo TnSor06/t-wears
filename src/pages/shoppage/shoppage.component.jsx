@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { useEffect } from "react";
 
 import { Route } from "react-router-dom";
 
@@ -9,28 +9,25 @@ import { CollectionsPageContainer } from "../collections/collections.container";
 // For sagas : call action from action in redux
 import { fetchCollectionsStart } from "../../redux/shop/shop.actions";
 
-class ShopPage extends Component {
-  componentDidMount() {
-    const { fetchCollectionsStart } = this.props;
+const ShopPage = (props) => {
+  const { match, fetchCollectionsStart } = props;
+  useEffect(() => {
     fetchCollectionsStart();
-  }
-  render() {
-    const { match } = this.props;
-    return (
-      <div className="shop-page">
-        <Route
-          exact
-          path={`${match.path}`}
-          component={CollectionsOverviewContainer}
-        ></Route>
-        <Route
-          path={`${match.path}/:collection`}
-          component={CollectionsPageContainer}
-        ></Route>
-      </div>
-    );
-  }
-}
+  }, [fetchCollectionsStart]);
+  return (
+    <div className="shop-page">
+      <Route
+        exact
+        path={`${match.path}`}
+        component={CollectionsOverviewContainer}
+      ></Route>
+      <Route
+        path={`${match.path}/:collection`}
+        component={CollectionsPageContainer}
+      ></Route>
+    </div>
+  );
+};
 
 const mapDispatchToProps = (dispatch) => {
   return {
