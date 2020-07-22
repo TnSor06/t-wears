@@ -7,45 +7,19 @@ import { HomePage } from "./pages/homepage/homepage.component";
 import ShopPage from "./pages/shoppage/shoppage.component";
 import Header from "./components/header/header.component";
 import { SignInAndSignUp } from "./pages/sign-in-and-sign-up/sign-in-and-sign-up.component";
-import { auth, createUserProfileDocument } from "./firebase/firebase.utils";
 
 // HOC for redux to give access to redux
 import { connect } from "react-redux";
 // Import action to be used
-import { setCurrentUser } from "./redux/user/user.actions";
 import { selectCurrentUser } from "./redux/user/user.selector";
 import { createStructuredSelector } from "reselect";
 import CheckoutPage from "./pages/checkout/checkout.component";
+import { checkUserSession } from "./redux/user/user.actions";
 
 class App extends Component {
-  unsubscribeFromAuth = null;
-
   componentDidMount() {
-    const { setCurrentUser } = this.props;
-    this.unsubscribeFromAuth = auth.onAuthStateChanged(async (userAuth) => {
-      if (userAuth) {
-        const userRef = await createUserProfileDocument(userAuth);
-        userRef.onSnapshot((snapShot) => {
-          setCurrentUser({
-            id: snapShot.id,
-            ...snapShot.data(),
-          });
-        });
-      } else {
-        setCurrentUser(userAuth);
-        // collectionArray: selectShopCollectionsForPreview in Props
-        // AddCollectionAndDocuments(
-        //   "collections",
-        //   collectionArray.map(({ title, items }) => {
-        //     return { title, items };
-        //   })
-        // );
-      }
-    });
-  }
-
-  componentWillUnmount() {
-    this.unsubscribeFromAuth();
+    const { checkUserSession } = this.props;
+    checkUserSession();
   }
 
   render() {
@@ -84,8 +58,8 @@ const mapStateToProps = createStructuredSelector({
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    setCurrentUser: (user) => {
-      dispatch(setCurrentUser(user));
+    checkUserSession: () => {
+      dispatch(checkUserSession());
     },
   };
 };

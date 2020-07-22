@@ -909,7 +909,7 @@ Async Redux:
         Data is recieved in stream observer has three methods: onNext, onError, onComplete
         In our code we use onNext to get latest updates.
         Note: These methods return unsubscribe methods and thus should be used for unMounting Case
-        Alternate is Promise methods
+        Alternate is Promise methods or use Fetch
 
         // Observer Pattern
         collectionRef.onSnapshot(async (snapshot) => {
@@ -921,6 +921,7 @@ Async Redux:
                 isLoading: false,
             });
         });
+
         // Promise Pattern
         collectionRef.get().then(async (snapshot) => {
             // No longer live updates here
@@ -931,6 +932,7 @@ Async Redux:
                 isLoading: false,
             });
         });
+
         // Fetch Pattern
         fetch("https://firestore.googleapis.com/v1/projects/t-wears/databases/(default)/documents/collections")
         .then((response) => response.json())
@@ -938,3 +940,234 @@ Async Redux:
             // Return API Version
             console.log(collection);
         });
+
+    - We usually call such methods on parent component so that it is easy to pass to child via redux and data is only called when needed
+        and unmounted when component is removed
+    - So we use componentDidMount when component loads
+
+    - Async Event Handling using thunk and redux-thunk for redux rather than in Component:
+        npm i redux-thunk
+        in store.js:
+            // Middleware that allows us to fire functions
+            import thunk from "redux-thunk";
+
+            const middlewares = [thunk]; // Setting middleware
+        in shop.types.js
+            // Configuring for Async
+            export const shopActionTypes = {
+                FETCH_COLLECTION_START: "FETCH_COLLECTION_START",
+                FETCH_COLLECTION_SUCCESS: "FETCH_COLLECTION_SUCCESS",
+                FETCH_COLLECTION_FAILURE: "FETCH_COLLECTION_FAILURE",
+            };
+        in shop.reducer.jsx
+            import { shopActionTypes } from "./shop.types";
+
+            const INITIAL_STATE = {
+                collections: null,
+                errorMessage: "",
+                isFetching: false,
+            };
+
+            const shopReducer = (state = INITIAL_STATE, action) => {
+                switch (action.type) {
+                    case shopActionTypes.FETCH_COLLECTION_START:
+                        return {
+                            ...state,
+                            isFetching: true,
+                        };
+                    case shopActionTypes.FETCH_COLLECTION_SUCCESS:
+                        return {
+                            ...state,
+                            isFetching: false,
+                            collections: action.payload,
+                        };
+                    case shopActionTypes.FETCH_COLLECTION_FAILURE:
+                        return {
+                            ...state,
+                            isFetching: false,
+                            errorMessage: action.payload,
+                        };
+                    default:
+                        return state;
+                }
+            };
+
+            export default shopReducer;
+        
+        in shop.actions.js
+        import { shopActionTypes } from "./shop.types";
+        import {
+            firestore,
+            convertCollectionSnapshotToMap,
+        } from "../../firebase/firebase.utils";
+
+        // Thunk is action creator that return a function that gets disptach similar to mapDispatchToProps
+        // We write a function that returns a fucntion
+        // A function is dispatched instead of object, the middleware thunk will call function with dispatched method itself as first arg
+        export const fetchCollectionsStart = () => {
+            return {
+                type: shopActionTypes.FETCH_COLLECTION_START,
+            };
+        };
+
+        export const fetchCollectionsSuccess = (collectionsMap) => {
+            return {
+                type: shopActionTypes.FETCH_COLLECTION_SUCCESS,
+                payload: collectionsMap,
+            };
+        };
+
+        export const fetchCollectionsFailure = (error) => {
+            return {
+                type: shopActionTypes.FETCH_COLLECTION_FAILURE,
+                payload: error,
+            };
+        };
+
+        // Actual function to pass the component
+        // thunk works on here as we have pass to the middleware
+        export const fetchCollectionsStartAsync = () => {
+            return (dispatch) => {
+                // Call dispatchStart method
+                dispatch(fetchCollectionsStart());
+
+                // All code from componentDidMount
+                const collectionRef = firestore.collection("collections");
+                // Promise Pattern
+                // cannot work on Observer pattern
+                collectionRef
+                .get()
+                .then(async (snapshot) => {
+                    // No longer live updates here
+                    const collectionsMap = convertCollectionSnapshotToMap(snapshot);
+                    dispatch(fetchCollectionsSuccess(collectionsMap));
+                })
+                .catch((error) => {
+                    dispatch(fetchCollectionsFailure(error));
+                });
+            };
+        };
+
+        in shop.selector.js
+            // For async fetching
+            export const selectIsCollectionFetching = createSelector(
+                [selectShop],
+                (shop) => {
+                    return shop.isFetching;
+                }
+            );
+
+            // For each apparale men, women, jacket since we pass isLoading as false
+            // componentDidMount calls after first render so that it throws an error since data is not loaded
+            // and isloading is false as no function is fired. Thus we create a new selector
+            export const selectIsCollectionLoaded = createSelector([selectShop], (shop) => {
+                // !! return boolean value
+                return !!shop.collections;
+            });
+
+        in shop.component.jsx
+            // For thunk
+            import { fetchCollectionsStartAsync } from "../../redux/shop/shop.actions";
+            import { createStructuredSelector } from "reselect";
+            import {
+                selectIsCollectionFetching,
+                selectIsCollectionLoaded,
+            } from "../../redux/shop/shop.selector";
+
+            const CollectionsOverviewWithSpinner = WithSpinner(CollectionsOverview);
+            const CollectionsPageWithSpinner = WithSpinner(CollectionsPage);
+
+            class ShopPage extends Component {
+                componentDidMount() {
+                    const { fetchCollectionsStartAsync } = this.props;
+                    fetchCollectionsStartAsync();
+                }
+                render() {
+                    const { match } = this.props;
+                    // Passing isFetching instead of isLoading
+                    const { isCollectionFetching, isCollectionLoaded } = this.props;
+                    return (
+                    <div className="shop-page">
+                        <Route
+                        exact
+                        path={`${match.path}`}
+                        // component={CollectionsOverview}
+                        render={(props) => {
+                            return (
+                            <CollectionsOverviewWithSpinner
+                                isLoading={isCollectionFetching}
+                                {...props}
+                            ></CollectionsOverviewWithSpinner>
+                            );
+                        }}
+                        ></Route>
+                        <Route
+                        path={`${match.path}/:collection`}
+                        // component={CollectionsPage}
+                        render={(props) => {
+                            return (
+                            <CollectionsPageWithSpinner
+                                isLoading={!isCollectionLoaded}
+                                {...props}
+                            ></CollectionsPageWithSpinner>
+                            );
+                        }}
+                        ></Route>
+                    </div>
+                    );
+                }
+            }
+
+            const mapStateToProps = createStructuredSelector({
+                isCollectionFetching: selectIsCollectionFetching,
+                isCollectionLoaded: selectIsCollectionLoaded,
+            });
+
+            const mapDispatchToProps = (dispatch) => {
+                return {
+                    fetchCollectionsStartAsync: () => {
+                    dispatch(fetchCollectionsStartAsync());
+                    },
+                };
+            };
+
+            export default connect(mapStateToProps, mapDispatchToProps)(ShopPage);
+
+Currying HOC using compose: import {compose} from "redux";
+
+Container Pattern
+Containerizing component rather than calling in parent for redux data:
+    collections-overview.container,jsx
+        import { connect } from "react-redux";
+        import { WithSpinner } from "../../components/with-spinner/with-spinner.component";
+
+        // For thunk
+        import { createStructuredSelector } from "reselect";
+        import { selectIsCollectionFetching } from "../../redux/shop/shop.selector";
+        import CollectionsOverview from "./collections-overview.component";
+
+        import { compose } from "redux";
+
+        const mapStateToProps = createStructuredSelector({
+            isCollectionFetching: selectIsCollectionFetching,
+        });
+
+        export const CollectionsOverviewContainer = compose(
+            connect(mapStateToProps),
+            WithSpinner
+        )(CollectionsOverview);
+
+    in Main Component we can call :
+        component={CollectionsOverviewContainer}
+    instead of :
+        render={(props) => {
+            return (
+              <CollectionsOverviewWithSpinner
+                isLoading={isCollectionFetching}
+                {...props}
+              ></CollectionsOverviewWithSpinner>
+            );
+          }}
+        // Also there is no need to pass this data in parent
+    Only dispatch is needed in parent component but state and props wrt to child component is passed into the child container component
+    
