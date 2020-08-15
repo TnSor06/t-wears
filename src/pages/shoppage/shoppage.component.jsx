@@ -11,6 +11,7 @@ import { fetchCollectionsStart } from "../../redux/shop/shop.actions";
 
 const ShopPage = (props) => {
   const { match, fetchCollectionsStart } = props;
+  console.log(props);
   useEffect(() => {
     fetchCollectionsStart();
   }, [fetchCollectionsStart]);
