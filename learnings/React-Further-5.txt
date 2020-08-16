@@ -1,0 +1,46 @@
+Mobile Responsiveness:
+    + gloabl-styles.js and App.js
+    - Using Media Queries to style which is possible in scss and styled-component as well
+
+Performance With React Application:
+    - Don't optimize code ahead of time and only optimize if there is a big problem.
+    - Don't over-optimize
+    1. Chunking and Code-Splitting
+        - Js is stored in chunks
+        - On Build all code is transferred all together as a single chunk
+        - We can split the code so that required chunk is transferred so that when needed only bare minimum code is given
+        - So we use React lazy
+        - Webpack is a bundler used by react to bundle files in App.js when it sees Header it pull header file
+            statically in such way all js file is statically bundled.
+        + App.js
+        - React Router makes it easy to use lazy and also suspense since it allows code-splitting
+        - Lazy loading should be mostly page level component since it contains all major file for that components
+    2. Error Boundaries
+        - If connection stops or throws an error in loading it breaks the app
+        - Error Boundaries is a feature that allows us to write a unique component to create a fallback when an error occurs
+        + error-boundary.component.jsx -> App.js
+        - Error boundaries are React components that catch JavaScript errors anywhere in their child component tree, log those errors, and display a fallback UI instead of the component tree that crashed.
+            Error boundaries catch errors during rendering, in lifecycle methods, and in constructors of the whole tree below them.
+            A class component becomes an error boundary if it defines either (or both) of the lifecycle methods static getDerivedStateFromError() or componentDidCatch(). 
+            Updating state from these lifecycles lets you capture an unhandled JavaScript error in the below tree and display a fallback UI.
+    3. React memo, PureComponent and shouldComponentUpdate
+        - shouldComponentUpdate helps saving re-render time but also we can use memo and PureComponent as alternative
+        - functional component re-renders whenver a parent is called
+        - React memo memoize the functional component if props don't change it makes shallow comparison
+            export default React.memo(HomePage) 
+            component re-render only when props change
+        - React.PureComponent is for classes as it implement shallow comparison between state and props to see the changes
+        - Only do it for element that renders unecessary because of props remaining same
+        - If no props then there is no need to memoize the component
+    4. useCallback, useMemo
+        - function of functional component regenerate everytime on re-render
+        - so we use useCallback hook 
+        -> const logName = useCallback(()=>{console.log("Test")},[])
+        - useCallback return a memoized callback and useMemo returns memoized value 
+            Pass a “create” function and an array of dependencies. 
+            useMemo will only recompute the memoized value when one of the dependencies has changed. 
+    5. Gzipping and Compression
+        - React builds gzip the js files
+        - npm i compression : helps gzipping the file if working with server
+            + const compression = require('compression')
+            + app.use(compression())

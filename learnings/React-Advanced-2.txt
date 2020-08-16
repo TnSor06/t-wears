@@ -1,0 +1,219 @@
+Redux Saga: Async API Requests
+
+Thunk allows external functions rather than just redux actions(View: Redux Async Flow.png)
+These middleware catch action before updating reducers. Thunk allow action as function to be invoked before updating reducers based on other dispatch
+
+Sagas are different these are function that conditionally run based on a specific action.
+
+Generator Function in JS (it yields): Helps in async await
+    // Basis of sagas
+    function* gen(i){
+        console.log(i);
+        yield(i);
+        yield(i+10);
+        return 25;
+    }
+    // when we call the function we store it in variable
+    const g = gen(5)
+    const gobj = g.next() // console.log(5) and yield(5)
+    // gobj = {value:5,done:false}
+    const gobj2 = g.next()
+    // gobj2 = {value:15,done:false}
+    // if no return
+    const gobj3 = g.next()
+    // gobj3 = {value:undefined,done:true}
+    // if return
+    // gobj3 = {value:25,done:true}
+
+Getting started with redux-saga:
+    npm i redux-saga
+    - Setting up Sagas
+        store.js
+            import { createStore, applyMiddleware } from "redux";
+            import { persistStore } from "redux-persist";
+            import logger from "redux-logger";
+
+            import rootReducer from "./root-reducer";
+
+            // Replacing thunk with redux-saga
+            // import thunk from "thunk";
+            import createSagaMiddleware from "redux-saga";
+            import { fetchCollectionsStart } from "./shop/shop.sagas";
+            const sagaMiddleware = createSagaMiddleware(); // Creating Middleware
+            const middlewares = [sagaMiddleware]; // Setting middleware
+
+            if (process.env.NODE_ENV === "development") {
+            middlewares.push(logger);
+            }
+
+            const store = createStore(rootReducer, applyMiddleware(...middlewares));
+
+            // Creating each saga by passing it in run
+            // to be mounted on store before running
+            sagaMiddleware.run(fetchCollectionsStart);
+
+            const persistor = persistStore(store);
+
+            export { store, persistor };
+        shop.saga.js in shop reducer folder
+            // Holds all saga code related to shop
+
+            // Importing effects from saga
+            import { takeEvery, call, put } from "redux-saga/effects";
+            // takeEvery listens to every action of specific types that we pass to it
+            // call is the effect inside gen function that invokes a method to yield
+            // put is replacement of dispatch in sagas
+
+            // fetchCollectionAsync action into saga using generator function
+            import { shopActionTypes } from "./shop.types";
+            import {
+            fetchCollectionsSuccess,
+            fetchCollectionsFailure,
+            } from "./shop.actions";
+            import {
+            firestore,
+            convertCollectionSnapshotToMap,
+            } from "../../firebase/firebase.utils";
+
+            // Sagas run concurrently in a way that it does not pause the execution
+            // We do not wait for the code to finish and allow non-blocking call
+            // Also we can cancel the task/saga-action
+
+            // COnverting thunk to saga
+            export function* fetchCollectionsAsync() {
+            // does all async work
+            // Here we pass code from action to sagas to handle logic and actions just oass data to redux based on type and failure
+
+            // All code from fetchCollectionsStartAsync in action
+            try {
+                const collectionRef = firestore.collection("collections");
+                // Rather then opting for promise we use generator function
+                const snapshot = yield collectionRef.get(); // like async/ await
+                const collectionsMap = yield call(convertCollectionSnapshotToMap, snapshot); // call(fun_name, parameters...)
+                // Yield allows us to defer control back to saga incase it can cancel. So adding yield makes it easy to test or defer control to saga
+                // Saga do not dispatch action using dispatch keyword but use put
+                yield put(fetchCollectionsSuccess(collectionsMap));
+            } catch (error) {
+                yield put(fetchCollectionsFailure(error));
+            }
+            }
+
+            export function* fetchCollectionsStart() {
+            // Pause when sepcific action type comes in
+            yield takeEvery(
+                shopActionTypes.FETCH_COLLECTION_START,
+                fetchCollectionsAsync
+            );
+            // First arg is to listen for that tpye and next is calling another gen funcction
+            // to be executed on yield
+            }
+        in shoppage.component.jsx
+            // For sagas : call action from action in redux
+            import { fetchCollectionsStart } from "../../redux/shop/shop.actions";
+
+            class ShopPage extends Component {
+            componentDidMount() {
+                const { fetchCollectionsStart } = this.props;
+                fetchCollectionsStart();
+            }
+            render() {
+                const { match } = this.props;
+                return (
+                <div className="shop-page">
+                    <Route
+                    exact
+                    path={`${match.path}`}
+                    component={CollectionsOverviewContainer}
+                    ></Route>
+                    <Route
+                    path={`${match.path}/:collection`}
+                    component={CollectionsPageContainer}
+                    ></Route>
+                </div>
+                );
+            }
+            }
+
+            const mapDispatchToProps = (dispatch) => {
+            return {
+                fetchCollectionsStart: () => {
+                dispatch(fetchCollectionsStart());
+                },
+            };
+            };
+
+            export default connect(null, mapDispatchToProps)(ShopPage);
+    - take, takeEvery, takeLatest
+        1. take(): unlike takeEvery we dont pass another gen function.
+        It waits for action to happen and we action occurs we can store
+        action payload in variable.
+        export function* incrementSaga(){
+            const retData = yield take("INCREMENT")
+            console.log("Increment")
+            // we can never restart saga
+            // once yield and console.log is done it cannot be restarted
+        }  
+        2. takeEvery(): We pass an another gen function. takeEvery kicks a new task for every action where as take on kicks on for an action
+        export function* onIncrement(){
+            yield console.log("Incremented)
+        }
+        export function* incrementSaga(){
+            while(true){
+                yield take("INCREMENT", onIncrement)
+                console.log("Increment")
+            }
+            or
+            yield takeEvery("INCREMENT", onIncrement)
+            // we can never restart saga
+        }  
+        // When incrementSaga is triggered on action a new task to run onIncrement code and it is regenerated over and over again 
+        // and not running on same incrementSaga generator. Creates a new iteration so we can loop and listen for more than one time.
+        // so we can use while loop to show how takeEvery works. takeEvery spawns new taks concurrently and in non-blocking way.
+        3. takeLatest(): for concurrently executed task and non-blocking action we want to take only latest action and discard previos actions
+    -Changed SignIn Methods to saga methods rather than using it in component. Check user reducer
+    - Since we have removed observer pattern we need persistence and signOut functionality as actions in sagas
+    - Check ReduxSagaFlow.png and SignINSaga.png
+    - Changes done in files
+        User-reducer-> user.types.js, user.actions.js, user-reducer.jsx, user.sagas.js,root-saga.js, store.js, sign-in.component.jsx, header.component.jsx,sign-up.component.jsx, App.js
+    - Action from one saga can listen and call another saga for that action. 
+        For example when we signOut we can clear cart as well
+        Cart-reducer -> cart.types.js, cart.actions.js, cart-reducer.jsx, cart.sagas.js,root-saga.js
+    -Sagas Make component free of logic and only for frontend presentation. and handles all api requests
+
+React Hooks: Aim to replace class component to functional component and also provide states to those component
+    1. useState allows component to use state with parameter passed: it gives back state and setState in an array
+        const [title, setTitle] = useState("MySpace")
+               value, setterFunction=>Changes Value like in this.setState
+    2. useEffect (Alternative to lifecycle methods in functional component)
+    useEffect(()=>{
+        // Called whenever component changes
+    },[user]) // Array has properties to say when to apply on state change
+    // empty array means it fires once since we are not watching any state (componentDidMount)
+
+    Rules: Conditional Code firing must be within hooks since hooks definition should be on top of App not within any function with component
+    Components: sign-in.component.jsx, sign-up.component.jsx, App.js, shoppage.component.jsx
+
+    3. useEffect pass a function within function which is cleanup function i.e componentWillUnmount
+    useEffect(()=>{
+        return ()=>{
+            // CleanUp function
+            // For componentWillUnmount
+        }
+    }, [])
+
+    4. Custom Hooks: Same hooks for two or more components
+    Create folder called effects and add use-{common}.effect.js
+        import {useState,useEffect} from 'react'
+        function useFetch(params){ // or Arrow function
+            const [data,setData] = useState(null);
+            useEffect(()=>{
+                //Logic
+            },[conditionals])
+            return data;
+        }
+    5. useReducer hooks: Lets build actual reducer and state management
+        // Localized to component
+        // Not Async
+        Example: https://github.com/ZhangMYihua/useReducer-example
+    
+    Many hooks will be explained in ContextAPI later
