@@ -1,0 +1,5 @@
+React Testing:
+    - As complexity increases we test each component based on unit, integration
+    - Ran before releasing to production to check if it works as intended
+    - TDD: Writing code with the test.
+    

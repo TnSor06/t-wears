@@ -1,0 +1,39 @@
+1. Don't Over Complicate
+    - Lines of code != Good Developer
+    - Readability
+    - Don't follow trend to go to best technology. You should understand what you are doing.
+2. Be A Late Follower
+    - Tools evolve
+    - Learn new tools but don't implement just because it is new.
+3. Break Down things
+    - Make component simpler and break it further so that each component does only one thing
+    - Structure file because more component needs to be structured.
+4. Things are never perfect
+    - Productivity reduces if you go for perfection.
+    - Build then brush it later.
+    - Improve based on feedback
+
+Progressive Web Apps.
+    - Webpage interaction with Native App features
+    - Web App HTML, CSS, JS.
+    - Push Notification, Offline Mode, Geolocation, Access to Phone Hardware.
+    - Create React App creates PWA out of the box.
+    - Use Lighthouse chrome plugin
+    1. HTTPS:
+        - Encrypted Data and middleman cannot retrieve data
+        - Let's Encrypt, Cloudflare is a free open certificate authority
+    2. App Manifest
+        - "manifest.json" 
+        - favicon image generator
+        - Preview and Custom Splash screen
+    3. Service Worker
+        - Script browser runs in background for features that dont need web page to work with
+        - Allow us to control what happens on request-to-request basis
+        - Offline Experience and Push Notification
+        - regiterserviceworker in index.js and serviceworker file
+        - Acts as a network proxy and intercepts request to check if he has the file rather than fetching from network
+        - Cache API is where files are stored which are fetched by serviceworker.js
+        - Check "sw-precache" lib
+        a. Register service worker in  react and pass js file from server if we are unable to pass it from the server
+        b. Update App's Manifest to our purpose and data
+        c. Redirect http request to https (For server end "npm i express-sslify" and use it in express)
