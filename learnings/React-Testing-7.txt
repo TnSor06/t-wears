@@ -2,4 +2,46 @@ React Testing:
     - As complexity increases we test each component based on unit, integration
     - Ran before releasing to production to check if it works as intended
     - TDD: Writing code with the test.
+    - Tools: 
+        1. Testing Library, Assertion Library, Test Runner, "Mock,Spy,Stub", Code coverage:
+            - Jasmine, Jest, Mocha/ Chai (These lib does all work mentioned above)
+        - Assertion Library asserts if the value expected is same or not while testing.
+        - Spy provide information about functions; Stub replace selected function to ensure expected behavior happens; Mocks mean faking execution the function
+        - Check Puppeteer by Google
+        - Behavior Driven Development
+        - Snapshot testing(Jest) and Enzyme
+    A. Unit Testing
+        - Should Cover all small functions of application
+        - One thing at a time like a component so one unit test of the function
+        - It should have no side effect (Affecting other function).
+    B. Integration Testing
+        - Cross-Communication between units of code
+        - Spy expected side effect from one component to another
+        - Connecting component how they work together
+        - We are never sure if test is perfect
+    C. Automation Testing
+        - UI test always running in browser like click, type, scroll
+        - WebDriver I/O, TestCafe, Nightmare.js
+        - End-to-End testing(test entire process)
+    - Production Testing: Puppeteer, DOM in App.js
+        Development Testing: Jest, jsdom in App.test.js
+    - Working with jest: Check parcel folder
+        npm i jest --save-dev
+        - jest looks for __test__ folder or file.test.js
+        - basics: script.test.js
+    - Async test
+        npm i node-fetch : TO make fetch calls in node
+        - Use assertions
+        - Use done or return(for last promise)
+    - Mocks and Spies
+        - Many tests takes long time to run each test
+        - Mocks helps in faking a function adn pretend to replace something
+        - Usually used to replace dependencies
+        - Spies let you check behavior of mock function wrt original function
     
+    Testing React Component:(Check react_basics folder)
+        - npm i --save-dev enzyme enzyme-adapter-react-16
+        - Setting Up enzyme by docs
+            + setupTests.js
+            + card.component.js
+        
