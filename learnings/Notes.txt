@@ -1,0 +1,142 @@
+Promise and Async and await should have try catch block
+    1. In Promise
+        promise.then(
+            // Your result code here
+        ).catch(
+            // In case of error here
+        )
+    2. In Async and await
+        async fn(){
+            try{
+                //Await code here
+            }
+            catch(ex){
+                // Error code here
+            }
+        }
+
+To send data to client in case of error
+    res.status(500).send("Something Went Wrong");
+
+Keep Your error handlinng logic central
+
+    In Express we have error-middleware to register error
+    After all paths add
+        app.use(express.json());
+        app.use('/api/users', users);
+        app.use('/api/auth', auth);
+
+        // Here
+        app.use(function(err, req, next, res){
+            // Your error hadling code here
+        })
+    So in catch block pass 
+        catch(ex){
+            next(ex)  // Your code is transmitted to this above middleware
+        }
+
+Removing try catch block from each route to avoid repitition
+    // This function can be stored in folder to be called from everywhere
+    function asyncMiddleware(routeHandler){
+        // Paramters are pass by express in here for function
+        return async (req,res,next) =>{
+            try{
+                await routeHandler(req,res)
+            }catch(ex){
+                next(ex)
+            }
+        };
+    }
+
+    // In your route
+    router.get("/", asyncMiddleware(async (req,res)=>{
+        // Your logic
+    }))
+
+Another alternative module that can be used is "express-async-errors"
+    // In index.js
+    require("express-async-errors")
+    // No function call or anything to be done
+
+Logging Errors
+    npm i winston
+    // In index.js
+    const winston = require("winston")
+    // these logger has transport like console, file, http
+    winston.add(winston.transports.File, {filename:"logfile.log"});
+
+    In catch block for your code or error handling function
+    const winston = require("winston")
+    catch(err) {
+        // Information to log: error, log, info, verbose, debug, silly
+        winston.log("error", err.message,err)
+        // err here is metadata
+        res.status(500).send("Something Failed")    
+    }
+
+Logging to mongodb
+    npm i winston-mongodb
+    // In index.js
+    const winston = require("winston")
+    require("winston-mongodb")
+    // these logger has transport like console, file, http
+    winston.add(winston.transports.MongoDB, {db:'mongodb:// mongodb String here', level:"error"});
+
+
+Error middleware catches error in terms of routes But if error arises outisde of its scope such error will not be caught
+So for error in context of error outside processing a request
+    In NodeJS process object is eventEmitter
+    process.on("uncaughtException", (ex)=>{
+        // Only for synchronous code
+        winston.error("error",err.message,err)
+    })
+
+Unhandled Promise rejection(Promise that is rejected and have no catch in it)
+    process.on("unhandledRejection", (ex)=>{
+        // For Asynchronous code
+        winston.error("error",err.message,err)
+        process.exit(1);
+    })
+
+Best practive is to stop & restart server as it is unclean state
+    // Alternative to uncaughtExceptions
+    winston.handleExceptions(new winston.transports.File({
+        filename: 'uncaughtExceptions.log'
+    }))
+
+Testing:
+    Automated testing -> Source Code = Test Code + Main Code
+        - Frequent and Less Time Consuming
+        - Catches Bugs 
+        - Refactor Code: Restructuring Code
+        - Focus More on quality
+    - Unit Testing: Test unit of code without external dependencies
+        - Execute Fast
+        - Checks Code logic
+        - Less external dependencies
+    - Integration Test: Tests application with external dependencies
+        - Connections of data to another dependencies
+    - End to End testing: Drives an application through uuser interface(Selenium)
+        - Very slow and brittle
+    - Testing Pyramid:
+        Unit(Bits of code)->Integration(Only where we integrate)->E2E(Key functions)
+        - Favor Unit Test to E2E Tests
+    
+    Frameworks for testing:
+        - Jest, Mocha, Jasmine
+        - Setting up JEST: npm i jest save-dev
+            in package.json in scripts add "test":"jest"
+        - Folder and File Convention:
+            ->test
+                ->module_name.test.js
+            moudle_name.js
+
+        - Test file:
+            test("Test Name", () => {
+                // Function Called by jest automatically
+                // test output are given based on test name
+                throw new Error("Something Failed");
+            });
+        
+        - Jest watch your file for test: Add --watchAll flag to jest in package.json
+    - Integration test using supertest: npm i supertest --save-dev
