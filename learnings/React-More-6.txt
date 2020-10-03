@@ -37,3 +37,25 @@ Progressive Web Apps.
         a. Register service worker in  react and pass js file from server if we are unable to pass it from the server
         b. Update App's Manifest to our purpose and data
         c. Redirect http request to https (For server end "npm i express-sslify" and use it in express)
+
+Webpack + Babel:
+    - That's how create-react-app works
+    - Webpack: Converts js files to vanilla js which can be understood by browsers
+    - npm i --save-dev webpack webpack-cli
+    - In package.json, "build": "webpack --mode=production",
+    - Babel: Converter for js code. Loader which tells webpack to convert js code
+        - npm i @babel/core @babel/preset-env @babel/preset-react babel-loader
+        - babel/preset-env is for transpiling js code from es7 or later to browser understandable code
+        - babel/preset-react is for react specifically
+        - babel-loader is for webpack config
+    - For CSS-loader:
+        - npm i style-loader css-loader
+    - For HTML-loader: Which loads compiled code JS and CSS with HTML and bundles efficient code with js and css
+        - npm i html-loader html-webpack-plugin (note: it should not be plugins)
+    + webpack.config.js
+    + .babelrc
+    - npm run build
+    - Dev server like react
+        - npm i webpack-dev-server
+        - in package.json => start in scripts
+    - Try ejecting the code

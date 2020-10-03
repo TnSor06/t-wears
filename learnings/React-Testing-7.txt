@@ -10,6 +10,8 @@ React Testing:
         - Check Puppeteer by Google
         - Behavior Driven Development
         - Snapshot testing(Jest) and Enzyme
+        2. Code Coverage
+        - npm test -- --coverage
     A. Unit Testing
         - Should Cover all small functions of application
         - One thing at a time like a component so one unit test of the function
@@ -39,9 +41,18 @@ React Testing:
         - Usually used to replace dependencies
         - Spies let you check behavior of mock function wrt original function
     
-    Testing React Component:(Check react_basics folder)
-        - npm i --save-dev enzyme enzyme-adapter-react-16
+    Testing React Component:(Check t-wears folder)
+        - npm i --save-dev enzyme enzyme-adapter-react-16 react-test-renderer jest-enzyme
         - Setting Up enzyme by docs
             + setupTests.js
-            + card.component.js
+            + package.json "test:coverage" to check code coverage
+        - shallow, mount, render
+            - shallow component test checks a component and not on its child
+        1. Basic Testing:
+            + TestComponent.test.js
+        2. Snapshot testing
+            - Creates a snapshot of the component and saves it in snapshot folder 
+            - So if there are any changes wrt new changes it shows
+        3. Testing component with props
+            - Create a mock function which passes props
         
